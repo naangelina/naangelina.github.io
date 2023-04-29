@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script type="text/javascript" src="https://ff.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=8ewVNruFQWGR9CmJGAdgXL7pHXZ0UhV8212CC1oFSBi1G4ucgU6Kds4LnlG0ncKsIZXasHogyKtlmCpW4TQVWO5Ldd8hTXEwEpi5jsBjB8gG-BviduxdsXmDzIwVNDXaGvs9383GpmHa4GwmieL2Xg" charset="UTF-8"></script><script src="p5.js"></script>
+    <script src="subwaytron.js"></script> 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.5.0/addons/p5.sound.js"></script>
+
+    <script defer src="https://unpkg.com/p5.collide2d"></script>
+
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            min-height: 100%;
+            background-color: black;
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+        }
+
+        html, body {
+        height: 100%;
+        }
+
+
+        #playY {
+            color: black;
+            position: absolute;
+            z-index: 0;
+        }
+        #tableY {
+            color: black;
+            position: absolute;
+            z-index: 100;
+            top: 20px;
+        }
+
+    </style>
+</head>
+    <script>
+        var stage = 0
+        var startUp
+        var gameover
+        var zhit
+        var bgm
+        var pew
+        var err
+
+        var w = window.innerWidth / 2
+        var h = window.innerHeight /1.5
+        var use
+        var zomb = []
+        var userHP
+        var HPbar
+        var sprint
+        var i
+        var peng
+        var z1
+        var spawningZomb = true
+        var fish
+        var bg
+        var hits
+        var peng1
+        var peng2
+        var peng3
+        var click
+
+        var testzomb
+
+        var healthPack = []
+        var thpack = []
+        var spawnHP = true
+        var tspawnHP = true
+        var spawnAm = true
+        
+        let bullets = []
+        var pistolA = 17
+        var ammo = []
+        var amimg
+
+        var score = 0
+        var kills = 0
+      
+        let zombHit = false
+        //let hpHit = false
+        
+        let inv = false; 
+
+        let invTimer = 1; 
+
+        var titleFont
+
+        var instr = 0
+
+        function preload() {
+            titleFont = loadFont('font.ttf')
+            soundFormats('wav','mp3')
+            startUp = loadSound('sound/start')
+            hits = loadSound('sound/hurt')
+            gameover = loadSound('sound/gameover')
+            zhit = loadSound('sound/zhit')
+            bgm = loadSound('sound/bgm.mp3')
+            pew = loadSound('sound/pew')
+            err = loadSound('sound/error')
+
+            click = loadSound('sound/click')
+
+        }
+
+
+        function setup() {
+            createCanvas(w,h)
+            noSmooth()
+            frameRate(60)
+
+            hpRandomX = random(0,w-40)
+            hpRandomY = random(0,h-40)
+
+            amRandomX = random(0,w-20)
+            amRandomY = random(0,h-20)
+            
+            use = new use()
+
+            testzomb = new tzomb()
+            
+            userHP = new userHP()
+            HPbar = new HPbar()
+            sprint = new sprint()
+
+            zomb.push(new zombie())
+            
+            healthPack.push(new hpPack())
+            thpack.push(new thp())
+
+            ammo.push(new am())
+
+
+
+            peng = loadImage('peng.png');
+            z1 = loadImage('zomb1.png');
+            fish = loadImage('fish.png');
+
+            peng1 = loadImage('peng1.png')
+            peng2 = loadImage('peng2.png')
+            peng3 = loadImage('peng3.png')
+
+            amimg = loadImage('am.png')
+
+            bg = loadImage('map2.png')
+            backgroundMusic()
+            
+        }
+
+        function backgroundMusic() {
+            bgm.setVolume(0.6)
+            bgm.play()
+            bgm.loop()
+            userStartAudio()
+        }
+
+        
+        function draw() {
+
+            if (stage == 0) {
+                splash()
+                
+                
+                document.body.style.cursor = "none";
+            }
+            if (stage == 1) {
+                instructions()
+                
+
+            }
+            if (stage == 2) {
+                i2()
+            }
+            if (stage == 3) {
+                i3()
+                /*document.body.onkeydown= function (e) {
+                    if (e.keyCode == 13) {
+                        switch(instr % 3) {
+                            case 0:
+                                instructions()
+                                instr += 1
+                                break
+                            case 1:
+                                i2()
+                                instr += 1
+                                break
+                            case 2:
+                                i3()
+                                instr += 1
+                                break
+                        }
+                    }
+                }*/
+                    /*if (keyCode == 13) {
+                        instr = 1
+                        click.setVolume(0.3)
+                        click.play()
+                        click.setLoop(false)
+                    }*/
+                }
+            if (stage == 4) {
+                i4()
+            }
+            
+            /*if (stage == 6) {
+                i2()
+
+                if (keyCode == 81) {
+                    instr = 2
+                    click.setVolume(0.3)
+                    click.play()
+                    click.setLoop(false)
+                }
+                
+                
+            }
+            if (stage == 7) {
+                i3()
+
+            }*/
+            if (stage == 5) {
+                game()
+                document.body.style.cursor = "crosshair";
+            }
+
+            if (stage == 6) {
+                end()
+                document.body.style.cursor = "none";
+                if (keyCode == 82) {
+                    stage = 5
+                    
+                    reset()
+                }
+            }
+                document.body.onkeydown = function (e) {
+                    if (stage < 5) {
+                        if (e.keyCode == 32) {
+                            stage += 1
+                            click.setVolume(0.3)
+                            click.play()
+                            click.setLoop(false)
+                        }
+                    }
+
+            }
+            
+            
+        }
+
+
+
+        function reset() {
+            use.hp = 100
+            pistolA = 17
+            zomb = []
+            healthPack = []
+            HPbar.width = w/2.5
+            userHP.width = 40
+            score = 0
+            kills = 0
+            use.x = w/2
+            use.y = 100
+            bullets = []
+            startUp.setVolume(0.2)
+            startUp.play()
+            startUp.setLoop(false)
+            ammo = []
+        }
+
+        function splash() {
+            background(0)
+            textAlign(CENTER)
+
+            textFont(titleFont)
+            fill(255)
+            stroke(0)
+            textSize(60)
+            text('Last to Infect',w/2,(h/2)-180)
+            textSize(30)
+            fill('red')
+            text('Goal: Avoid being eaten by a hoard of zombies.',w/2,(h/2)-140)
+
+            fill(255)
+            textSize(45)
+            text('HOW TO PLAY:',w/2,(h/2)-40)
+            textSize(30)
+            fill('gray')
+            text('Use WASD to move',w/2,(h/2))
+            text('Press SHIFT to sprint',w/2,(h/2)+40)
+            text('Click to shoot with your mouse',w/2,(h/2)+80)
+            fill(255)
+            textSize(48)
+            text('CLICK SPACE TO START',w/2,(h/2)+180)
+
+        }
+
+        function instructions() {
+            background(255)
+            image(bg,0,0,w,h)
+
+            image(peng1,w-250,h-300,200,230)
+
+            fill(0)
+            strokeWeight(2)
+            stroke(255)
+            rect(w/2,h-75,w-60,110)
+            rectMode(CENTER)
+            strokeWeight(0)
+            fill(255)
+            textSize(18)
+            text('My name is Pew and I am the last penguin alive of my village. I used to live in Antartica with my other fellow penguins, but every single one of them were wiped out by zombies. Now, I am on a mission to travel the world to find other survivors.',w/2,h-100,w-70)
+            fill('#808080')
+            text('[Click SPACE to continue]',w/2,h-30,w-70)            
+
+        }
+
+        function i2() {
+            
+            background(255)
+            image(bg,0,0,w,h)
+
+            testzomb.show()
+            testzomb.update()
+
+
+            image(peng2,w-285,h-300,230,230)
+
+
+            fill(0)
+            strokeWeight(2)
+            stroke(255)
+            rect(w/2,h-75,w-60,110)
+            rectMode(CENTER)
+            strokeWeight(0)
+            fill(255)
+            textSize(18)
+            text('This is a zombie. Some of them are fast while the majority of them are slow. Luckily, zombies dont have weapons like us, but if they run into you, you will take damage. It takes two bullets to kill one zombie.',w/2,h-100,w-70)
+            fill('#808080')
+            text('[Click SPACE to continue]',w/2,h-30,w-70)
+
+            return false
+   
+        }
+
+        function i3() {
+            
+            background(255)
+            image(bg,0,0,w,h)
+
+            if (tspawnHP) {
+                tspawnHP = false
+                setTimeout(function() {
+                    if (thpack.length < 7) {
+                        thpack.push(new thp())
+                    }
+                    tspawnHP = true
+                },
+                2000)
+            }
+            for(let i = 0; i < thpack.length; i++){
+                thpack[i].draw()
+                
+            }
+
+            image(peng1,w-250,h-300,200,230)
+
+
+            fill(0)
+            strokeWeight(2)
+            stroke(255)
+            rect(w/2,h-75,w-60,110)
+            rectMode(CENTER)
+            strokeWeight(0)
+            fill(255)
+            textSize(18)
+            text('Dont worry if you get hit, health packs that look like fish will randomly spawn every 12 seconds. Be sure to keep an eye out for these health packs as the amount of zombies will stack up!',w/2,h-100,w-70)
+            fill('#808080')
+            text('[Click SPACE to continue]',w/2,h-30,w-70)
+
+            
+        }
+
+        function i4() {
+            background(255)
+            image(bg,0,0,w,h)
+
+            image(peng3,w-250,h-300,200,230)
+
+            image(amimg,w/2,h/2-60,60,60)
+
+            fill(0)
+            strokeWeight(2)
+            stroke(255)
+            rect(w/2,h-75,w-60,110)
+            rectMode(CENTER)
+            strokeWeight(0)
+            fill(255)
+            textSize(18)
+            text('Finally, look out for ammo packs hidden in chests. Like I mentioned earlier, killing a zombie requires you to shoot it twice so you will run out of bullets quickly! Unlike health packs, these spawn more frequently but the amount of bullets you gain is unreliable. Good luck!',w/2,h-100,w-70)
+            fill('#808080')
+            text('[Click SPACE to continue]',w/2,h-30,w-70)   
+        }
+        
+
+        function game() {
+            clear()
+            background(255)
+            image(bg,0,0,w,h)
+
+            
+
+            strokeWeight(1)
+
+            zombHit = false
+            
+            if (spawningZomb) {
+                spawningZomb = false
+                setTimeout(function() {
+                    if (zomb.length < 20) {
+                        zomb.push(new zombie())
+                    
+                    }
+                    spawningZomb = true
+                },
+                random(1,2)*1000)
+            }
+            for(let i = 0; i < zomb.length; i++){
+                zomb[i].draw()
+            }
+
+            //hpHit = false
+            if (spawnHP) {
+                spawnHP = false
+                setTimeout(function() {
+                    if (healthPack.length < 2) {
+                        healthPack.push(new hpPack())
+                    }
+                    spawnHP = true
+                },
+                12000)
+            }
+            for(let i = 0; i < healthPack.length; i++){
+                healthPack[i].draw()
+                if(healthPack[i].hpHit) {
+                    healthPack.splice(i, 1)
+                    i--;
+                    use.hp = Math.min(use.setHp, use.hp+20)
+                    HPbar.width = Math.min(HPbar.setWidth, HPbar.width + HPbar.wHeal)
+                    pew.setVolume(0.7)
+                    pew.play()
+                    pew.setLoop(false)
+                    console.log(HPbar.wHeal)
+                    score += 100
+                }
+            }
+
+            if (spawnAm) {
+                spawnAm = false
+                setTimeout(function() {
+                    if (ammo.length < 1) {
+                        ammo.push(new am())
+                    }
+                    spawnAm = true
+                },
+                random(3,10)*1000)
+            }
+            for(let i = 0; i < ammo.length; i++){
+                ammo[i].draw()
+                if(ammo[i].amHit) {
+                    ammo.splice(i, 1)
+                    i--;
+                    pistolA = Math.min(17, pistolA+int(random(2,12)))
+                    console.log(pistolA)
+                    pew.setVolume(0.7)
+                    pew.play()
+                    pew.setLoop(false)
+                    score += 100
+                }
+            }
+
+
+            use.show()
+            use.update() 
+            userHP.show()
+            userHP.update()
+
+            HPbar.show()
+            sprint.show()
+
+
+            var bulletI = 0; 
+
+            if (pistolA > 0) {
+                
+                while(bulletI < bullets.length) {
+                    if (bulletI < 17) {
+                        var bullet = bullets[bulletI]; 
+                        ellipse(bullet.x + (use.width/2),bullet.y + (use.height/2),bullet.width)
+                        bullet.y += bullet.speed*sin(bullet.angle)
+                        bullet.x += bullet.speed*cos(bullet.angle)
+
+                        let bulletRemove = false; 
+                        for (let i = 0; i < zomb.length; i++) {
+                            var bulletHit = collideRectCircle(zomb[i].x,zomb[i].y,30,49,bullet.x+ (use.width/2),bullet.y+ (use.height/2),bullet.width)
+                            //var bulletHit = collideCircleCircle(bullet.x+ (use.width/2),bullet.y+ (use.height/2),bullet.width,zomb[i].x,zomb[i].y,40)
+                            if(bulletHit){
+                                bulletRemove = true; 
+                                zomb[i].takeDamage(10)
+                                zhit.setVolume(0.1)
+                                zhit.play()
+                                zhit.setLoop(false)
+                                if(zomb[i].hp <= 0) {
+                                    zomb.splice(i, 1)
+                                    score += 200
+                                    kills += 1
+                                }  
+                                break
+                            }
+                        }
+                        if (bullet.x > w || bullet.x < 0) {
+                            bulletRemove = true
+                        }
+                        else if (bullet.y > h || bullet.y < 0) {
+                            bulletRemove = true
+                        }
+
+
+                        if(!bulletRemove) {
+                            bulletI++; 
+                        }
+                        else {  
+                            bullets.splice(bulletI, 1); 
+                        }
+
+                    }
+                    else {
+                        break
+                    }
+                }
+            }
+                 
+            
+                            
+            if (userHP.width > 0) {
+                if (keyIsDown(87)) {
+                    use.y += -2
+                }
+                
+                if (keyIsDown(83)) {
+                    use.y += 2
+                }
+                if (keyIsDown(68)) {
+                    use.x += 2
+                }
+                if (keyIsDown(65)) {
+                    use.x += -2 
+                }
+            }
+                    
+            
+            if (keyIsDown(16) === true) {
+                console.log('e')
+                if (userHP.width > 0 && sprint.width > 0) {
+                    if (keyIsDown(87)) {
+                    use.y += -2.2
+                    sprint.width -= sprint.drain
+                    }
+                    if (keyIsDown(83)) {
+                        use.y += 2.2
+                        sprint.width -= sprint.drain
+
+                    }
+                    if (keyIsDown(68)) {
+                        use.x += 2.2
+                        sprint.width -= sprint.drain
+
+                    }
+                    if (keyIsDown(65)) {
+                        use.x += -2.2
+                        sprint.width -= sprint.drain
+
+                    }
+                }
+            }
+
+
+            if (keyIsDown(16) === false) {
+                if (sprint.width < sprint.setWidth) {
+                    sprint.width += sprint.drain
+                }
+            }
+            
+            
+            
+            if (use.hp <= 0) {
+                stage = 6
+                gameover.setVolume(0.6)
+                gameover.play()
+                gameover.setLoop(false)
+            }
+
+            rectMode(CORNER)
+            stroke(0)
+            textAlign(LEFT)
+            strokeWeight(2)
+            var amLeft = 'Ammo: ' + pistolA + '/17'
+            textSize(30)
+            fill(255)
+            textAlign(RIGHT)
+            text(amLeft, w - 320, h-15, 300)
+
+            textAlign(LEFT)
+            var scor = 'Score: ' + score
+            localStorage.setItem("score", scor);
+
+            text(scor, 20, h-15, 200)
+            var kamount = 'Zombies Killed: ' + kills
+            text(kamount, 20, h-45, 400)
+            localStorage.setItem("kill", kamount);
+
+        }
+
+        function mousePressed() {
+            let angle = atan2(mouseY - use.y- use.width/2,mouseX - use.x - use.width/2); 
+
+            if (stage ==  5) {
+                let bullet = {
+                    x: use.x,
+                    y: use.y,
+                    width: 5,
+                    height: 5,
+                    angle: angle,
+                    speed: 6,
+                }
+                    if (bullets.push(bullet)) {
+                        if (pistolA > 0) {
+                            pistolA--
+                        }                
+                        if (pistolA <= 0) {
+                            pistolA -= 0
+                            bulletRemove = true
+                            bullets.length = 0
+                            err.setVolume(0.05)
+                            err.play()
+                            err.setLoop(false)
+                        }
+                        console.log(pistolA)
+                    }
+                }
+                
+            }
+
+            
+            // bulletHit = collideCircleCircle(bullet.x,bullet.y,bullet.width,bullet.height,zomb.x,zomb.y,20,20)
+
+            // if (bulletHit === true) {
+            //     console.log('mew')
+            // }
+
+        
+
+        function end() {
+            textAlign(CENTER)
+            background(0)
+            textFont(titleFont)
+            fill('red')
+            stroke(0)
+            textSize(70)
+            text('YOU DIED',w/2,(h/2)-180)
+            textSize(30)
+            fill(255)
+            text('Zombies have eaten your brain.',w/2,(h/2)-140)
+            text('You were unable to reach your goal ',w/2,(h/2)-110)
+
+
+
+            const rscore = localStorage.getItem("score")
+            const rkill = localStorage.getItem("kill")
+
+
+            fill(255)
+            textSize(35)
+            text(rscore,w/2,(h/2)+10)
+            text(rkill,w/2,(h/2)+50)
+
+            textSize(55)
+            text('CLICK R TO RESTART',w/2,(h/2)+180)
+
+            
+
+        }
+    
+
+            
+        /*            
+            
+            
+            
+        */
+
+    </script>
+</body>
+</html>
